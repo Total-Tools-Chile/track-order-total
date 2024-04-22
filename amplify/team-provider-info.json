@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-trackingordershopify-dev-b05ef-authRole",
+      "UnauthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackingordershopify-dev-b05ef-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackingordershopify-dev-b05ef-authRole",
+      "Region": "eu-north-1",
+      "DeploymentBucketName": "amplify-trackingordershopify-dev-b05ef-deployment",
+      "UnauthRoleName": "amplify-trackingordershopify-dev-b05ef-unauthRole",
+      "StackName": "amplify-trackingordershopify-dev-b05ef",
+      "StackId": "arn:aws:cloudformation:eu-north-1:235746191608:stack/amplify-trackingordershopify-dev-b05ef/5db47d90-0053-11ef-b1c3-0a6f6d943991",
+      "AmplifyAppId": "d1xbef9rlug3qo"
+    }
+  }
+}
