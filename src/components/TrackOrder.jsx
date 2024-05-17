@@ -6,6 +6,7 @@ import { Layout } from "antd";
 import TimeLineTracker from "./TimeLineTracker";
 import ProductsList from "./ListOfProducts";
 import { FloatingWhatsApp } from "./WhatsAppButton/FloatingWhatsApp";
+import InfoDestiny from "./InfoDestiny";
 
 // Dentro de tu componente o donde necesites acceder a las variables de entorno
 const apiKey = import.meta.env.VITE_API_KEY;
@@ -17,6 +18,8 @@ function TrackOrder() {
   const [orderDetails, setOrderDetails] = useState(null);
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [shopifyDetails, setShopifyDetails] = useState(null);
+
+  console.log(shopifyDetails)
   // Fetch initial order details
   useEffect(() => {
     fetch(
@@ -58,6 +61,7 @@ function TrackOrder() {
     <Layout style={{ maxWidth: "1200px", margin: "2rem auto" }}>
       <CustomerInfo orderDetails={orderDetails} />
       <TimeLineOrder trackingData={trackingInfo} />
+      <InfoDestiny client={shopifyDetails} />
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         <div
           style={{

@@ -54,7 +54,7 @@ const TimeLineOrder = ({ trackingData }) => {
   if (!trackingData) return <SkeletonTimeLineOrder />;
 
   return (
-    <div style={{ marginTop: "5rem", padding: "2rem" }}>
+    <div style={{ marginTop: "1rem", padding: "2rem" }}>
       <Steps labelPlacement="vertical" current={currentStepIndex}>
         <Step
           title="Ordenada"

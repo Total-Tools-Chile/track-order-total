@@ -22,7 +22,8 @@ const CustomerInfo = ({ orderDetails }) => {
           <Col span={24} md={8}>
             <Card className="payment-method-card">
               <h6 className="card-number">
-                Nombre: {orderDetails?.firstName} {orderDetails?.lastName}
+                Nombre: {orderDetails?.firstName}
+                {orderDetails?.lastName}
               </h6>
             </Card>
           </Col>
