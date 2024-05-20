@@ -5,12 +5,12 @@ import {
   FileTextOutlined
 } from "@ant-design/icons";
 import PropTypes from "prop-types";
-import SkeletonCustomerInfo from "../components/Skeletons/SkeletonCustomerInfo";
+import SkeletonDestinyInfo from "./Skeletons/SkeletonDestinyInfo";
 
 const { Link } = Typography;
 
 const InfoDestiny = ({ client }) => {
-  if (!client) return <SkeletonCustomerInfo />;
+  if (!client) return <SkeletonDestinyInfo />;
 
   const boletaUrl = client?.order?.note_attributes?.find(
     (attr) => attr.name === "URL"
@@ -25,7 +25,7 @@ const InfoDestiny = ({ client }) => {
               <span style={{ display: "flex", alignItems: "center" }}>
                 <EnvironmentOutlined style={{ marginRight: 8 }} />
                 <h6 style={{ margin: "0" }} className="card-number">
-                  Region destino: {client.order.shipping_address.province}
+                  Region destino: {client?.order?.shipping_address?.province}
                 </h6>
               </span>
             </Card>
@@ -35,7 +35,7 @@ const InfoDestiny = ({ client }) => {
               <span style={{ display: "flex", alignItems: "center" }}>
                 <HomeOutlined style={{ marginRight: 8 }} />
                 <h6 style={{ margin: "0" }} className="card-number">
-                  Comuna destino: {client.order.shipping_address.city}
+                  Comuna destino: {client?.order.shipping_address?.city}
                 </h6>
               </span>
             </Card>
@@ -45,7 +45,7 @@ const InfoDestiny = ({ client }) => {
               <span style={{ display: "flex", alignItems: "center" }}>
                 <FileTextOutlined style={{ marginRight: 8 }} />
                 <h6 style={{ margin: "0" }} className="card-number">
-                  Boleta/Factura: {client.qtyProducts}
+                  Boleta/Factura: {client?.qtyProducts}
                   {boletaUrl && (
                     <Link
                       href={boletaUrl}
