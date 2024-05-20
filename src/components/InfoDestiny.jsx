@@ -12,7 +12,7 @@ const { Link } = Typography;
 const InfoDestiny = ({ client }) => {
   if (!client) return <SkeletonCustomerInfo />;
 
-  const boletaUrl = client.order.note_attributes.find(
+  const boletaUrl = client?.order?.note_attributes?.find(
     (attr) => attr.name === "URL"
   )?.value;
 

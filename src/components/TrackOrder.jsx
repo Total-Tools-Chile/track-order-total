@@ -19,7 +19,6 @@ function TrackOrder() {
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [shopifyDetails, setShopifyDetails] = useState(null);
 
-  console.log(shopifyDetails)
   // Fetch initial order details
   useEffect(() => {
     fetch(
