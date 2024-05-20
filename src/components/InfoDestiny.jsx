@@ -35,7 +35,7 @@ const InfoDestiny = ({ client }) => {
               <span style={{ display: "flex", alignItems: "center" }}>
                 <HomeOutlined style={{ marginRight: 8 }} />
                 <h6 style={{ margin: "0" }} className="card-number">
-                  Comuna destino: {client?.order.shipping_address?.city}
+                  Comuna destino: {client?.order?.shipping_address?.city}
                 </h6>
               </span>
             </Card>
