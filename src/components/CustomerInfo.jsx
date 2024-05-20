@@ -1,5 +1,10 @@
 import { Row, Col, Card, Image } from "antd";
 import Link from "antd/es/typography/Link";
+import {
+  UserOutlined,
+  ShoppingOutlined,
+  TruckOutlined
+} from "@ant-design/icons";
 import PropTypes from "prop-types";
 import SkeletonCustomerInfo from "../components/Skeletons/SkeletonCustomerInfo";
 
@@ -21,22 +26,36 @@ const CustomerInfo = ({ orderDetails }) => {
         <Row justify="center" align="middle" gutter={[24, 24]}>
           <Col span={24} md={8}>
             <Card className="payment-method-card">
-              <h6 className="card-number">
-                Nombre: {orderDetails?.firstName}
-                {orderDetails?.lastName}
-              </h6>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <UserOutlined style={{ marginRight: 10, fontSize: "1.5rem" }} />
+                <h6 style={{ margin: "0" }} className="card-number">
+                  Nombre: {orderDetails?.firstName} {orderDetails?.lastName}
+                </h6>
+              </span>
             </Card>
           </Col>
           <Col span={24} md={8}>
             <Card className="payment-method-card">
-              <h6 className="card-number">ODT: {orderDetails?.ODT}</h6>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <TruckOutlined
+                  style={{ marginRight: 10, fontSize: "1.5rem" }}
+                />
+                <h6 style={{ margin: "0" }} className="card-number">
+                  ODT: {orderDetails?.ODT}
+                </h6>
+              </span>
             </Card>
           </Col>
           <Col span={24} md={8}>
             <Card className="payment-method-card">
-              <h6 className="card-number">
-                Numero de Orden: {orderDetails?.nameSP}
-              </h6>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <ShoppingOutlined
+                  style={{ marginRight: 10, fontSize: "1.5rem" }}
+                />
+                <h6 style={{ margin: "0" }} className="card-number">
+                  Orden: #{orderDetails?.nameSP}
+                </h6>
+              </span>
             </Card>
           </Col>
         </Row>

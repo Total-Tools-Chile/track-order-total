@@ -10,6 +10,7 @@ import SkeletonDestinyInfo from "./Skeletons/SkeletonDestinyInfo";
 const { Link } = Typography;
 
 const InfoDestiny = ({ client }) => {
+console.log(client)
   if (!client) return <SkeletonDestinyInfo />;
 
   const boletaUrl = client?.order?.note_attributes?.find(
@@ -23,7 +24,7 @@ const InfoDestiny = ({ client }) => {
           <Col span={24} md={8}>
             <Card className="customer-info-card">
               <span style={{ display: "flex", alignItems: "center" }}>
-                <EnvironmentOutlined style={{ marginRight: 8 }} />
+                <EnvironmentOutlined style={{ marginRight: 10, fontSize : "1.3rem" }} />
                 <h6 style={{ margin: "0" }} className="card-number">
                   Region destino: {client?.order?.shipping_address?.province}
                 </h6>
@@ -33,7 +34,7 @@ const InfoDestiny = ({ client }) => {
           <Col span={24} md={8}>
             <Card className="customer-info-card">
               <span style={{ display: "flex", alignItems: "center" }}>
-                <HomeOutlined style={{ marginRight: 8 }} />
+                <HomeOutlined  style={{ marginRight: 10, fontSize : "1.3rem" }} />
                 <h6 style={{ margin: "0" }} className="card-number">
                   Comuna destino: {client?.order?.shipping_address?.city}
                 </h6>
@@ -43,7 +44,7 @@ const InfoDestiny = ({ client }) => {
           <Col span={24} md={8}>
             <Card className="customer-info-card">
               <span style={{ display: "flex", alignItems: "center" }}>
-                <FileTextOutlined style={{ marginRight: 8 }} />
+                <FileTextOutlined style={{ marginRight: 10, fontSize : "1.3rem" }} />
                 <h6 style={{ margin: "0" }} className="card-number">
                   Boleta/Factura: {client?.qtyProducts}
                   {boletaUrl && (

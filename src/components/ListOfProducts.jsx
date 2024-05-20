@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Collapse, List, Typography, Button, theme } from "antd";
+import { Collapse, List, Typography, Button, theme, Flex, Tag } from "antd";
 import { CaretRightOutlined, ReloadOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
 import { formatCLP } from "../utils/formatCLP";
@@ -67,7 +67,8 @@ const ProductsList = ({ lineItems }) => {
       )}
       style={{
         background: token.colorBgContainer,
-        marginBottom: "1rem" // Ensure some space around the component
+        marginBottom: "1rem", // Ensure some space around the component
+        alignItems: "center"
       }}
     >
       <Collapse.Panel
@@ -75,8 +76,7 @@ const ProductsList = ({ lineItems }) => {
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
+              justifyContent: "space-between"
             }}
           >
             <Text strong>Productos</Text>
@@ -94,15 +94,14 @@ const ProductsList = ({ lineItems }) => {
         key="1"
         style={panelStyle}
       >
-        <Text
-          type="secondary"
-          style={{ fontSize: "12px", display: "block", marginBottom: "1rem" }}
-        >
-          Total antes de IVA: {formatCLP(totals.totalBeforeTax.toFixed(2))}{" "}
-          Descuento total: {formatCLP(totals.totalDiscount.toFixed(2))} IVA
-          total: {formatCLP(totals.totalTax.toFixed(2))} Total con IVA:{" "}
-          {formatCLP(totals.totalAfterTax.toFixed(2))}
-        </Text>
+        <Flex gap="4px 0" wrap>
+          <Tag color="default">
+            Descuento total: {formatCLP(totals.totalDiscount.toFixed(0))}
+          </Tag>
+          <Tag color="default">
+            Total: {formatCLP(totals.totalAfterTax.toFixed(0))}
+          </Tag>
+        </Flex>
         <List
           itemLayout="horizontal"
           dataSource={lineItems}
