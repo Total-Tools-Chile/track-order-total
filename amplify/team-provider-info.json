@@ -1,15 +1,23 @@
 {
   "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-trackingordershopify-dev-b05ef-authRole",
-      "UnauthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackingordershopify-dev-b05ef-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackingordershopify-dev-b05ef-authRole",
+      "AuthRoleName": "amplify-trackordertotal-dev-afe48-authRole",
+      "UnauthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackordertotal-dev-afe48-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::235746191608:role/amplify-trackordertotal-dev-afe48-authRole",
       "Region": "eu-north-1",
-      "DeploymentBucketName": "amplify-trackingordershopify-dev-b05ef-deployment",
-      "UnauthRoleName": "amplify-trackingordershopify-dev-b05ef-unauthRole",
-      "StackName": "amplify-trackingordershopify-dev-b05ef",
-      "StackId": "arn:aws:cloudformation:eu-north-1:235746191608:stack/amplify-trackingordershopify-dev-b05ef/5db47d90-0053-11ef-b1c3-0a6f6d943991",
-      "AmplifyAppId": "d1xbef9rlug3qo"
+      "DeploymentBucketName": "amplify-trackordertotal-dev-afe48-deployment",
+      "UnauthRoleName": "amplify-trackordertotal-dev-afe48-unauthRole",
+      "StackName": "amplify-trackordertotal-dev-afe48",
+      "StackId": "arn:aws:cloudformation:eu-north-1:235746191608:stack/amplify-trackordertotal-dev-afe48/82e29f70-21d7-11ef-9f7f-0e3ad7594136",
+      "AmplifyAppId": "d2frkyqz0dj9qj"
+    },
+    "categories": {
+      "function": {
+        "trackordertotal01d20737": {
+          "deploymentBucketName": "amplify-trackordertotal-dev-afe48-deployment",
+          "s3Key": "amplify-builds/trackordertotal01d20737-58736d65375977334f34-build.zip"
+        }
+      }
     }
   }
 }

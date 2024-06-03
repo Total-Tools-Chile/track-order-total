@@ -1,1 +1,27 @@
-{}
+{
+  "function": {
+    "trackordertotal01d20737": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_trackordertotal01d20737_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "trackordertotal01d20737"
+        }
+      ]
+    },
+    "AMPLIFY_function_trackordertotal01d20737_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "trackordertotal01d20737"
+        }
+      ]
+    }
+  }
+}
