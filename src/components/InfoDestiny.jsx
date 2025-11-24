@@ -1,4 +1,5 @@
-import { Row, Col, Card, Typography } from "antd";
+import { Row, Col, Card, Button, Modal } from "antd";
+import { useState } from "react";
 import {
   EnvironmentOutlined,
   HomeOutlined,
@@ -7,10 +8,11 @@ import {
 import PropTypes from "prop-types";
 import SkeletonDestinyInfo from "./Skeletons/SkeletonDestinyInfo";
 
-const { Link } = Typography;
+// no Link usage
 
 const InfoDestiny = ({ client }) => {
-console.log(client)
+  const [open, setOpen] = useState(false);
+  console.log(client);
   if (!client) return <SkeletonDestinyInfo />;
 
   const boletaUrl = client?.order?.note_attributes?.find(
@@ -24,7 +26,9 @@ console.log(client)
           <Col span={24} md={8}>
             <Card className="customer-info-card">
               <span style={{ display: "flex", alignItems: "center" }}>
-                <EnvironmentOutlined style={{ marginRight: 10, fontSize : "1.3rem" }} />
+                <EnvironmentOutlined
+                  style={{ marginRight: 10, fontSize: "1.3rem" }}
+                />
                 <h6 style={{ margin: "0" }} className="card-number">
                   Region destino: {client?.order?.shipping_address?.province}
                 </h6>
@@ -34,7 +38,7 @@ console.log(client)
           <Col span={24} md={8}>
             <Card className="customer-info-card">
               <span style={{ display: "flex", alignItems: "center" }}>
-                <HomeOutlined  style={{ marginRight: 10, fontSize : "1.3rem" }} />
+                <HomeOutlined style={{ marginRight: 10, fontSize: "1.3rem" }} />
                 <h6 style={{ margin: "0" }} className="card-number">
                   Comuna destino: {client?.order?.shipping_address?.city}
                 </h6>
@@ -42,27 +46,59 @@ console.log(client)
             </Card>
           </Col>
           <Col span={24} md={8}>
-            <Card className="customer-info-card">
+            <Card
+              style={{ display: "flex", alignItems: "center" }}
+              className="customer-info-card"
+            >
               <span style={{ display: "flex", alignItems: "center" }}>
-                <FileTextOutlined style={{ marginRight: 10, fontSize : "1.3rem" }} />
+                <FileTextOutlined
+                  style={{ marginRight: 10, fontSize: "1.3rem" }}
+                />
                 <h6 style={{ margin: "0" }} className="card-number">
-                  Boleta/Factura: {client?.qtyProducts}
-                  {boletaUrl && (
-                    <Link
-                      href={boletaUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ marginLeft: "10px" }}
-                    >
-                      Ver Boleta
-                    </Link>
-                  )}
+                  Boleta/Factura
                 </h6>
               </span>
+              <div style={{ marginTop: "8px" }}>
+                {boletaUrl ? (
+                  <Button
+                    type="primary"
+                    href={boletaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ backgroundColor: "#036066" }}
+                  >
+                    Ver documento
+                  </Button>
+                ) : (
+                  <Button onClick={() => setOpen(true)}>
+                    Documento no disponible
+                  </Button>
+                )}
+              </div>
             </Card>
           </Col>
         </Row>
       </Col>
+      <Modal
+        title="Documento no disponible"
+        open={open}
+        onCancel={() => setOpen(false)}
+        onOk={() => setOpen(false)}
+        okText="Entendido"
+        cancelText="Cerrar"
+      >
+        <p>
+          Aún no se ha generado la boleta/factura para esta orden. Por favor
+          contáctate con nuestro equipo de soporte indicando tu número de orden.
+        </p>
+        <p>
+          Escribe a{" "}
+          <a href="mailto:ventas@herramientastotal.cl">
+            ventas@herramientastotal.cl
+          </a>{" "}
+          o usa el botón de WhatsApp en la esquina para atención rápida.
+        </p>
+      </Modal>
     </Row>
   );
 };

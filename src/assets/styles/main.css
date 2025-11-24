@@ -1,3 +1,31 @@
+/* Ajustes móviles para la página de seguimiento */
+@media (max-width: 768px) {
+  .track-container {
+    gap: 12px !important;
+  }
+  .track-flex {
+    justify-content: center !important;
+  }
+  .track-col {
+    margin: 0 6px !important;
+  }
+  .customer-info-card,
+  .payment-method-card {
+    padding: 12px !important;
+  }
+  .card-number {
+    text-align: center;
+  }
+  .ant-collapse > .ant-collapse-item > .ant-collapse-header {
+    padding: 8px 12px;
+  }
+  .ant-collapse-content > .ant-collapse-content-box {
+    padding: 8px 12px;
+  }
+  .ant-card {
+    margin-bottom: 8px;
+  }
+}
 /*!
 =========================================================
 * Muse Ant Design Dashboard - v1.0.0
@@ -1499,6 +1527,8 @@ ul.ant-menu.ant-menu-root.ant-menu-inline.ant-menu-light.left-nav li:active {
 }
 .ant-card-body {
   padding: 16px;
+  display: flex;
+  gap: 2rem;
 }
 
 ul.ant-menu.ant-menu-root.ant-menu-inline.ant-menu-light.left-nav li svg path {
