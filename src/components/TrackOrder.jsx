@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import CustomerInfo from "./CustomerInfo";
 import TimeLineOrder from "./TimeLineOrder";
-import { Layout, Row, Col } from "antd";
-import { footerConfig } from "../config/footerLinks.js";
+import { Layout } from "antd";
+
 import TimeLineTracker from "./TimeLineTracker";
 import ProductsList from "./ListOfProducts";
 import { FloatingWhatsApp } from "./WhatsAppButton/FloatingWhatsApp";
@@ -358,34 +358,6 @@ function TrackOrder() {
         }}
       >
         <div style={{ width: "100%", margin: "0 auto" }}>
-          <Row gutter={[16, 16]} justify="space-between" align="top">
-            {footerConfig.sections.map((section, idx) => (
-              <Col
-                key={idx}
-                xs={24}
-                sm={12}
-                md={8}
-                style={{ textAlign: "left" }}
-              >
-                <div style={{ marginBottom: "8px", fontWeight: 600 }}>
-                  {section.title}
-                </div>
-                {Array.isArray(section.links) &&
-                  section.links.map((link, i) => (
-                    <div key={i}>
-                      <a
-                        href={link.href}
-                        target={link.external ? "_blank" : undefined}
-                        rel={link.external ? "noreferrer" : undefined}
-                      >
-                        {link.label}
-                      </a>
-                    </div>
-                  ))}
-                {section.text && <div>{section.text}</div>}
-              </Col>
-            ))}
-          </Row>
           <div
             style={{
               marginTop: "16px",
