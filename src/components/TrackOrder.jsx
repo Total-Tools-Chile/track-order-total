@@ -14,13 +14,63 @@ import SupportHelp from "./SupportHelp";
 import PromoSlider from "./PromoSlider";
 
 // Dentro de tu componente o donde necesites acceder a las variables de entorno
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const CHX_TRACKING_URL = import.meta.env.VITE_CHX_TRACKING_URL; // Endpoint completo para Chilexpress
-const CHX_AUTH_TOKEN = import.meta.env.VITE_CHX_AUTH_TOKEN; // Bearer token para Chilexpress
+const API_BASE = (() => {
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL || "").trim();
+  // Si no es una URL http/https válida, forzamos el backend correcto
+  if (/^https?:\/\//i.test(fromEnv)) {
+    // normaliza removiendo slashes finales duplicados
+    return fromEnv.replace(/\/+$/, "");
+  }
+  return "https://shopy-sale-v2.fly.dev";
+})();
 const CHX_USER_ID =
-  import.meta.env.VITE_ID_USER || import.meta.env.vite_id_user; // ID usuario Chilexpress
+  (import.meta.env.VITE_CHX_USER_ID || "").trim() || "6414b5c318ef9e551c2bde68";
 const SHOPIFY_USER_ID =
-  import.meta.env.VITE_ID_USER || import.meta.env.vite_id_user; // ID usuario Shopify (mismo origen)
+  (import.meta.env.VITE_SHOPIFY_USER_ID || "").trim() ||
+  "6414b5c318ef9e551c2bde68";
+// Desde ahora, todas las llamadas pasan por el backend (fly.dev). No usamos token ni userId en el cliente.
+
+const getODT = (order) => {
+  if (!order || typeof order !== "object") return "";
+  return (
+    order.ODT ||
+    order.odt ||
+    order.transportOrderNumber ||
+    order.trackingNumber ||
+    order.codigo ||
+    ""
+  );
+};
+
+const getShopifyId = (order) => {
+  if (!order || typeof order !== "object") return "";
+  return (
+    order.idShop ||
+    order.id_shop ||
+    order.shopifyId ||
+    order.shopify_id ||
+    order.orderIdShopify ||
+    ""
+  );
+};
+
+const pickOrderFromResponse = (raw, wantedOdt) => {
+  try {
+    if (!raw) return null;
+    if (Array.isArray(raw)) {
+      const byMatch =
+        raw.find(
+          (it) =>
+            getODT(it) && String(getODT(it)).trim() === String(wantedOdt).trim()
+        ) || raw[0];
+      return byMatch || null;
+    }
+    if (typeof raw === "object") return raw;
+    return null;
+  } catch {
+    return null;
+  }
+};
 
 function TrackOrder() {
   const { orderId } = useParams(); // Extrae el ID del pedido de la URL
@@ -28,6 +78,7 @@ function TrackOrder() {
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [shopifyDetails, setShopifyDetails] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   console.log(orderDetails, trackingInfo, shopifyDetails);
 
@@ -41,12 +92,37 @@ function TrackOrder() {
 
   // Fetch initial order details
   useEffect(() => {
-    fetch(`${API_BASE}/shopsale/v1/order-pullman-track?ODT=${orderId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setOrderDetails(data);
+    const url = `${API_BASE}/shopsale/v1/order-pullman-track?ODT=${encodeURIComponent(
+      orderId
+    )}`;
+    fetch(url)
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : null;
+        } catch (e) {
+          console.error("Respuesta no JSON de order-pullman-track:", text);
+          return null;
+        }
       })
-      .catch((error) => console.error("Error fetching order details:", error));
+      .then((data) => {
+        const picked = pickOrderFromResponse(data, orderId);
+        if (!picked) {
+          setErrorMessage(
+            `No se encontró una orden para el ODT ${orderId}. Verifica el número.`
+          );
+          setOrderDetails(null);
+          return;
+        }
+        setErrorMessage("");
+        setOrderDetails(picked);
+      })
+      .catch((error) => {
+        console.error("Error fetching order details:", error);
+        setErrorMessage(
+          "No pudimos obtener la orden. Intenta nuevamente en unos minutos."
+        );
+      });
   }, [orderId]); // Only depends on orderId
 
   // Fetch tracking and shopify details once orderDetails is available
@@ -67,33 +143,17 @@ function TrackOrder() {
         return carrierLike.toLowerCase().includes("chilexpress");
       };
 
-      const buildChilexpressUrl = (odt) => {
-        if (CHX_TRACKING_URL) {
-          let url = CHX_TRACKING_URL;
-          if (CHX_USER_ID) {
-            url = url
-              .replace("{USER_ID}", CHX_USER_ID)
-              .replace("{ID_USER}", CHX_USER_ID);
-          }
-          // Si alguien dejó {ODT} por compatibilidad, lo reemplazamos; de lo contrario NO enviamos ODT en la URL
-          if (url.includes("{ODT}")) {
-            url = url.replace("{ODT}", odt);
-          }
-          return url;
-        }
-        // Default: misma API base + userId en path como indicaste
-        return `${API_BASE}/shopsale/v1/chilexpress/${CHX_USER_ID}/tracking`;
-      };
+      const buildChilexpressUrl = () =>
+        `${API_BASE}/shopsale/v1/chilexpress/${CHX_USER_ID}/tracking`;
 
       const buildChilexpressRequestOptions = (odt) => {
         const transportOrderNumber =
           Number(odt) || (typeof odt === "string" ? odt : "");
-        // Forzar rut constante 76338734 como indicaste
+        // RUT fijo definido por backend
         const rutNum = 76338734;
         return {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${CHX_AUTH_TOKEN}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
@@ -107,12 +167,19 @@ function TrackOrder() {
 
       const load = async () => {
         try {
+          const odt = getODT(orderDetails) || orderId;
+          if (!odt) {
+            setErrorMessage(
+              "La orden no contiene ODT válido para consultar tracking."
+            );
+            return;
+          }
           if (isChilexpressOrder(orderDetails)) {
             // Ir directo a Chilexpress usando el ODT encontrado en Mongo
-            const chxUrl = buildChilexpressUrl(orderDetails.ODT);
+            const chxUrl = buildChilexpressUrl();
             const chxResp = await fetch(
               chxUrl,
-              buildChilexpressRequestOptions(orderDetails.ODT)
+              buildChilexpressRequestOptions(odt)
             );
             if (!chxResp.ok)
               throw new Error(`Chilexpress status ${chxResp.status}`);
@@ -122,7 +189,9 @@ function TrackOrder() {
           } else {
             // Pullman por defecto
             const resp = await fetch(
-              `${API_BASE}/shopsale/v1/pullman/tracking/${orderDetails.ODT}?codigoComercio=INTTOTAL2023`
+              `${API_BASE}/shopsale/v1/pullman/tracking/${encodeURIComponent(
+                odt
+              )}?codigoComercio=INTTOTAL2023`
             );
             if (!resp.ok) {
               throw new Error(`Pullman status ${resp.status}`);
@@ -135,10 +204,10 @@ function TrackOrder() {
             } else if (isChilexpressOrder(orderDetails)) {
               // Fallback por falta de eventos
               try {
-                const chxUrl = buildChilexpressUrl(orderDetails.ODT);
+                const chxUrl = buildChilexpressUrl();
                 const chxResp = await fetch(
                   chxUrl,
-                  buildChilexpressRequestOptions(orderDetails.ODT)
+                  buildChilexpressRequestOptions(odt)
                 );
                 if (!chxResp.ok)
                   throw new Error(`Chilexpress status ${chxResp.status}`);
@@ -155,10 +224,11 @@ function TrackOrder() {
           // Fallback inmediato si Pullman arrojó error y la orden es de Chilexpress
           if (isChilexpressOrder(orderDetails)) {
             try {
-              const chxUrl = buildChilexpressUrl(orderDetails.ODT);
+              const odt = getODT(orderDetails) || orderId;
+              const chxUrl = buildChilexpressUrl();
               const chxResp = await fetch(
                 chxUrl,
-                buildChilexpressRequestOptions(orderDetails.ODT)
+                buildChilexpressRequestOptions(odt)
               );
               if (!chxResp.ok)
                 throw new Error(`Chilexpress status ${chxResp.status}`);
@@ -170,9 +240,13 @@ function TrackOrder() {
             }
           }
         } finally {
-          if (orderDetails.idShop) {
+          const shopId = getShopifyId(orderDetails);
+          if (shopId) {
             try {
-              const shopifyUrl = `${API_BASE}/shopsale/v1/shopify/${SHOPIFY_USER_ID}/orders?orderId=6748483387562`;
+              // Consultar pedido Shopify vía backend usando idShop de la orden
+              const shopifyUrl = `${API_BASE}/shopsale/v1/shopify/${SHOPIFY_USER_ID}/orders?orderId=${encodeURIComponent(
+                shopId
+              )}`;
               const response = await fetch(shopifyUrl, { method: "GET" });
               if (!response.ok) {
                 console.error(`Shopify status ${response.status}`);
@@ -190,7 +264,7 @@ function TrackOrder() {
 
       load();
     }
-  }, [orderDetails]);
+  }, [orderDetails, orderId]);
 
   // Adapta respuesta Chilexpress al formato esperado por el UI (ULTIMO_ESTADO, FECHA, ULTIMA_AGENCIA)
   const normalizeChilexpressTracking = (chxResponse) => {
@@ -311,6 +385,20 @@ function TrackOrder() {
 
   return (
     <Layout style={{ maxWidth: "1200px", margin: "2rem auto" }}>
+      {errorMessage && (
+        <div
+          style={{
+            color: "#b91c1c",
+            background: "#fee2e2",
+            border: "1px solid #fecaca",
+            padding: "8px 12px",
+            borderRadius: 6,
+            margin: "0 10px 12px"
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
       <CustomerInfo orderDetails={orderDetails} />
       <TimeLineOrder trackingData={trackingInfo} />
       <StatusSummary trackingData={trackingInfo} />
