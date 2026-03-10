@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Alert, Col, Layout, Row } from "antd";
 import CustomerInfo from "./CustomerInfo";
 import TimeLineOrder from "./TimeLineOrder";
-import { Layout } from "antd";
 
 import TimeLineTracker from "./TimeLineTracker";
 import ProductsList from "./ListOfProducts";
@@ -13,6 +13,8 @@ import StatusSummary from "./StatusSummary";
 import SupportHelp from "./SupportHelp";
 import PromoSlider from "./PromoSlider";
 
+const { Content, Footer } = Layout;
+
 // Dentro de tu componente o donde necesites acceder a las variables de entorno
 const API_BASE = (() => {
   const fromEnv = (import.meta.env.VITE_API_BASE_URL || "").trim();
@@ -21,10 +23,12 @@ const API_BASE = (() => {
     // normaliza removiendo slashes finales duplicados
     return fromEnv.replace(/\/+$/, "");
   }
-  return "https://shopy-sale-v2.fly.dev";
+  return "http://localhost:4444";
 })();
 const CHX_USER_ID =
   (import.meta.env.VITE_CHX_USER_ID || "").trim() || "6414b5c318ef9e551c2bde68";
+const BX_USER_ID =
+  (import.meta.env.VITE_BX_USER_ID || "").trim() || "6414b5c318ef9e551c2bde68";
 const SHOPIFY_USER_ID =
   (import.meta.env.VITE_SHOPIFY_USER_ID || "").trim() ||
   "6414b5c318ef9e551c2bde68";
@@ -72,23 +76,64 @@ const pickOrderFromResponse = (raw, wantedOdt) => {
   }
 };
 
+const toSentenceCase = (value = "") => {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (!normalized) return "";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const normalizeBluexpressTracking = (bxResponse) => {
+  try {
+    const frontend = bxResponse?.frontend || null;
+    const data = bxResponse?.data || null;
+    const packages = Array.isArray(data?.packages) ? data.packages : [];
+
+    const events = packages
+      .flatMap((pkg) =>
+        (Array.isArray(pkg?.trackings) ? pkg.trackings : []).map((tracking) => ({
+          key: `${pkg?.packageId || "pkg"}-${tracking?.trackingId || "evt"}`,
+          title: toSentenceCase(
+            tracking?.eventCodeDesc ||
+              tracking?.evetCodeDesc ||
+              tracking?.eventTypeDesc ||
+              frontend?.statusDescription ||
+              frontend?.stepTitle ||
+              "Evento registrado"
+          ),
+          date: tracking?.eventDate || tracking?.creationDate || "",
+          location: tracking?.location || data?.deliveryAddress?.fullAddress || "",
+          statusCode: tracking?.eventCode || frontend?.statusCode || "",
+          packageId: pkg?.packageId || ""
+        }))
+      )
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return {
+      provider: "bluexpress",
+      frontend,
+      raw: data,
+      events
+    };
+  } catch (error) {
+    console.error("Normalize Bluexpress error:", error);
+    return {
+      provider: "bluexpress",
+      frontend: bxResponse?.frontend || null,
+      raw: bxResponse?.data || null,
+      events: []
+    };
+  }
+};
+
 function TrackOrder() {
   const { orderId } = useParams(); // Extrae el ID del pedido de la URL
   const [orderDetails, setOrderDetails] = useState(null);
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [shopifyDetails, setShopifyDetails] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  console.log(orderDetails, trackingInfo, shopifyDetails);
-
-  useEffect(() => {
-    const mql = window.matchMedia("(max-width: 768px)");
-    const handler = (e) => setIsMobile(e.matches);
-    handler(mql);
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
 
   // Fetch initial order details
   useEffect(() => {
@@ -143,6 +188,26 @@ function TrackOrder() {
         return carrierLike.toLowerCase().includes("chilexpress");
       };
 
+      const isBluexpressOrder = (order) => {
+        const carrierLike =
+          (order?.carrier ||
+            order?.empresa ||
+            order?.courier ||
+            order?.shippingCompany ||
+            order?.transportCompany ||
+            order?.carrierName ||
+            order?.empresaEnvio ||
+            order?.servicio ||
+            order?.serviceName ||
+            "") + "";
+        const s = carrierLike.toLowerCase();
+        return (
+          s.includes("bluexpress") ||
+          s.includes("blue express") ||
+          s.includes("bluex")
+        );
+      };
+
       const buildChilexpressUrl = () =>
         `${API_BASE}/shopsale/v1/chilexpress/${CHX_USER_ID}/tracking`;
 
@@ -172,6 +237,16 @@ function TrackOrder() {
             setErrorMessage(
               "La orden no contiene ODT válido para consultar tracking."
             );
+            return;
+          }
+          if (isBluexpressOrder(orderDetails)) {
+            const bxUrl = `${API_BASE}/shopsale/v1/public/bluexpress/${BX_USER_ID}/tracking/${encodeURIComponent(
+              odt
+            )}`;
+            const bxResp = await fetch(bxUrl);
+            if (!bxResp.ok) throw new Error(`Bluexpress status ${bxResp.status}`);
+            const bx = await bxResp.json();
+            setTrackingInfo(normalizeBluexpressTracking(bx));
             return;
           }
           if (isChilexpressOrder(orderDetails)) {
@@ -384,81 +459,48 @@ function TrackOrder() {
   };
 
   return (
-    <Layout style={{ maxWidth: "1200px", margin: "2rem auto" }}>
-      {errorMessage && (
-        <div
-          style={{
-            color: "#b91c1c",
-            background: "#fee2e2",
-            border: "1px solid #fecaca",
-            padding: "8px 12px",
-            borderRadius: 6,
-            margin: "0 10px 12px"
-          }}
-        >
-          {errorMessage}
-        </div>
-      )}
-      <CustomerInfo orderDetails={orderDetails} />
-      <TimeLineOrder trackingData={trackingInfo} />
-      <StatusSummary trackingData={trackingInfo} />
-      <InfoDestiny client={shopifyDetails} />
-      <div
-        className="track-container"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: isMobile ? "12px" : "20px"
-        }}
-      >
-        <div
-          className="track-flex"
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: isMobile ? "center" : "space-around"
-          }}
-        >
-          <div
-            className="track-col"
-            style={{ flex: "1 1 300px", margin: isMobile ? "0 6px" : "0 10px" }}
-          >
-            <TimeLineTracker trackingData={trackingInfo} />
-          </div>
-          <div
-            className="track-col"
-            style={{ flex: "1 1 300px", margin: isMobile ? "0 6px" : "0 10px" }}
-          >
-            <ProductsList lineItems={shopifyDetails?.order?.line_items} />
-          </div>
-        </div>
-        <PromoSlider />
-        <SupportHelp carrierName={orderDetails?.carrier} />
-        <FAQ />
-      </div>
+    <Layout className="tracking-shell">
+      <Content className="tracking-shell__content">
+        {errorMessage && (
+          <Alert
+            message="No pudimos recuperar la orden"
+            description={errorMessage}
+            type="error"
+            showIcon
+            className="tracking-alert"
+          />
+        )}
 
+        <CustomerInfo orderDetails={orderDetails} />
+        <StatusSummary trackingData={trackingInfo} />
+        <TimeLineOrder trackingData={trackingInfo} />
+
+        <Row gutter={[20, 20]} className="tracking-grid">
+          <Col xs={24} xl={15}>
+            <div className="tracking-stack">
+              <TimeLineTracker trackingData={trackingInfo} />
+              <InfoDestiny client={shopifyDetails} />
+              <PromoSlider />
+            </div>
+          </Col>
+          <Col xs={24} xl={9}>
+            <div className="tracking-stack">
+              <ProductsList lineItems={shopifyDetails?.order?.line_items} />
+              <SupportHelp carrierName={orderDetails?.carrier} />
+              <FAQ />
+            </div>
+          </Col>
+        </Row>
+      </Content>
       <FloatingWhatsApp />
-      <Layout.Footer
-        style={{
-          padding: "24px 16px",
-          background: "#fafafa"
-        }}
-      >
-        <div style={{ width: "100%", margin: "0 auto" }}>
-          <div
-            style={{
-              marginTop: "16px",
-              textAlign: "center",
-              color: "#8c8c8c",
-              fontSize: "12px"
-            }}
-          >
+      <Footer className="tracking-footer">
+        <div className="tracking-footer__inner">
+          <div className="tracking-footer__copy">
             © {new Date().getFullYear()} Herramientas Total. Todos los derechos
             reservados.
           </div>
         </div>
-      </Layout.Footer>
+      </Footer>
     </Layout>
   );
 }

@@ -1,19 +1,8 @@
-import { Collapse, Typography, theme } from "antd";
+import { Card, Collapse, Typography } from "antd";
 
-const { Panel } = Collapse;
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const FAQ = () => {
-  const { token } = theme.useToken();
-  const containerStyle = {
-    margin: "0 10px",
-    marginTop: "1.5rem",
-    padding: "1rem",
-    border: "1px solid #f0f0f0",
-    borderRadius: token.borderRadiusLG,
-    background: token.colorBgContainer
-  };
-
   const faqs = [
     {
       q: "¿Cuánto demora el despacho?",
@@ -38,18 +27,25 @@ const FAQ = () => {
   ];
 
   return (
-    <div style={containerStyle}>
-      <Text strong style={{ display: "block", marginBottom: "0.5rem" }}>
-        Preguntas frecuentes
-      </Text>
-      <Collapse accordion>
-        {faqs.map((item, idx) => (
-          <Panel header={item.q} key={idx}>
-            <Text type="secondary">{item.a}</Text>
-          </Panel>
-        ))}
-      </Collapse>
-    </div>
+    <Card className="tracking-panel tracking-panel--compact">
+      <div className="tracking-panel__header">
+        <div>
+          <Text className="tracking-eyebrow">Ayuda rápida</Text>
+          <Title level={4} className="tracking-panel__title">
+            Preguntas frecuentes
+          </Title>
+        </div>
+      </div>
+      <Collapse
+        accordion
+        className="tracking-collapse"
+        items={faqs.map((item, idx) => ({
+          key: idx,
+          label: item.q,
+          children: <Text className="tracking-muted">{item.a}</Text>
+        }))}
+      />
+    </Card>
   );
 };
 

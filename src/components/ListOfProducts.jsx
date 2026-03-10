@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Collapse, List, Typography, Button, theme, Flex, Tag } from "antd";
+import { Card, Collapse, List, Typography, Button, Flex, Tag } from "antd";
 import { CaretRightOutlined, ReloadOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
 import { formatCLP } from "../utils/formatCLP";
@@ -8,14 +8,6 @@ import SkeletonListOfProducts from "../components/Skeletons/SkeletonListOfProduc
 const { Text } = Typography;
 
 const ProductsList = ({ lineItems }) => {
-  const { token } = theme.useToken();
-  const panelStyle = {
-    borderRadius: token.borderRadiusLG,
-    border: "1px solid #f0f0f0",
-    overflow: "hidden",
-    padding: "1rem"
-  };
-
   const [totals, setTotals] = useState({
     totalBeforeTax: 0,
     totalDiscount: 0,
@@ -59,67 +51,67 @@ const ProductsList = ({ lineItems }) => {
   if (!lineItems) return <SkeletonListOfProducts />;
 
   return (
-    <Collapse
-      bordered={false}
-      defaultActiveKey={["1"]}
-      expandIcon={({ isActive }) => (
-        <CaretRightOutlined rotate={isActive ? 90 : 0} />
-      )}
-      style={{
-        background: token.colorBgContainer,
-        marginBottom: "1rem", // Ensure some space around the component
-        alignItems: "center"
-      }}
-    >
-      <Collapse.Panel
-        header={
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between"
-            }}
-          >
-            <Text strong>Productos</Text>
-            <Button
-              icon={<ReloadOutlined />}
-              type="primary"
-              href={repeatPurchaseUrl()}
-              style={{ backgroundColor: "#036066" }}
-              target="_blank"
-            >
-              Repetir Compra
-            </Button>
-          </div>
-        }
-        key="1"
-        style={panelStyle}
-      >
-        <Flex gap="4px 0" wrap>
-          <Tag color="default">
-            Descuento total: {formatCLP(totals.totalDiscount.toFixed(0))}
-          </Tag>
-          <Tag color="default">
-            Total: {formatCLP(totals.totalAfterTax.toFixed(0))}
-          </Tag>
-        </Flex>
-        <List
-          itemLayout="horizontal"
-          dataSource={lineItems}
-          renderItem={(item, index) => (
-            <List.Item key={index}>
-              <List.Item.Meta
-                title={item.name}
-                description={`Cantidad: ${
-                  item.quantity
-                }, Precio Unitario: ${formatCLP(
-                  item.price
-                )}, Descuento: ${formatCLP(item.total_discount)}`}
-              />
-            </List.Item>
-          )}
-        />
-      </Collapse.Panel>
-    </Collapse>
+    <Card className="tracking-panel tracking-panel--compact">
+      <div className="tracking-panel__header">
+        <div>
+          <Text className="tracking-eyebrow">Carga de la orden</Text>
+          <div className="tracking-panel__title">Productos despachados</div>
+        </div>
+        <Button
+          icon={<ReloadOutlined />}
+          type="primary"
+          href={repeatPurchaseUrl()}
+          className="tracking-primary-button"
+          target="_blank"
+        >
+          Repetir compra
+        </Button>
+      </div>
+      <Collapse
+        bordered={false}
+        defaultActiveKey={["1"]}
+        expandIcon={({ isActive }) => (
+          <CaretRightOutlined rotate={isActive ? 90 : 0} />
+        )}
+        className="tracking-collapse"
+        items={[
+          {
+            key: "1",
+            label: <Text strong>Detalle de artículos</Text>,
+            children: (
+              <>
+                <Flex gap="8px 8px" wrap className="tracking-product-tags">
+                  <Tag className="tracking-chip">
+                    Descuento total:{" "}
+                    {formatCLP(totals.totalDiscount.toFixed(0))}
+                  </Tag>
+                  <Tag className="tracking-chip tracking-chip--dark">
+                    Total: {formatCLP(totals.totalAfterTax.toFixed(0))}
+                  </Tag>
+                </Flex>
+                <List
+                  itemLayout="horizontal"
+                  dataSource={lineItems}
+                  className="tracking-product-list"
+                  renderItem={(item, index) => (
+                    <List.Item key={index} className="tracking-product-list__item">
+                      <List.Item.Meta
+                        title={item.name}
+                        description={`Cantidad: ${
+                          item.quantity
+                        } • Unitario: ${formatCLP(item.price)} • Descuento: ${formatCLP(
+                          item.total_discount
+                        )}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </>
+            )
+          }
+        ]}
+      />
+    </Card>
   );
 };
 

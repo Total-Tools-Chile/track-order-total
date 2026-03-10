@@ -1,4 +1,4 @@
-import { Collapse, Timeline, theme, Typography } from "antd";
+import { Card, Collapse, Timeline, Typography } from "antd";
 import {
   CaretRightOutlined,
   ClockCircleOutlined,
@@ -15,14 +15,21 @@ const { Text } = Typography;
 
 const stateStyleMap = {
   Venta: { color: "blue", icon: <ShopOutlined /> },
+  Ordenada: { color: "blue", icon: <ShopOutlined /> },
   "Clasificado en Bodega": {
     color: "orange",
-    icon: <SolutionOutlined twoToneColor="#036066" />
+    icon: <SolutionOutlined twoToneColor="#016066" />
   },
+  Procesada: { color: "orange", icon: <SolutionOutlined /> },
+  "Guia en digitacion": { color: "orange", icon: <SolutionOutlined /> },
+  "Guia enviada": { color: "cyan", icon: <TruckOutlined /> },
   "Recepcionado en Agencia": { color: "green", icon: <HomeOutlined /> },
   "En proceso de despacho": { color: "cyan", icon: <TruckOutlined /> },
   "Procesando para envio": { color: "purple", icon: <TruckOutlined /> },
+  Enviada: { color: "purple", icon: <TruckOutlined /> },
   "En Viaje entre regiones": { color: "blue", icon: <TruckOutlined /> },
+  "En transito": { color: "blue", icon: <TruckOutlined /> },
+  "En tránsito": { color: "blue", icon: <TruckOutlined /> },
   "Recepcionado en lugar de entrega": {
     color: "volcano",
     icon: <HomeOutlined />
@@ -38,11 +45,31 @@ const stateStyleMap = {
 };
 
 const ComponentTimeLineTracker = ({ trackingData }) => {
+  const isBluex =
+    trackingData?.provider === "bluexpress" && trackingData?.frontend;
+  const items = isBluex
+    ? Array.isArray(trackingData?.events) && trackingData.events.length > 0
+      ? trackingData.events
+      : Array.isArray(trackingData?.frontend?.steps)
+        ? trackingData.frontend.steps
+        : []
+    : Array.isArray(trackingData)
+      ? trackingData
+      : [];
+
   return (
-    <div style={{ overflowY: "auto", maxHeight: "300px", padding: "1.5rem" }}>
-      <Timeline mode="alternate">
-        {trackingData?.map((item, index) => {
-          const { color, icon } = stateStyleMap[item.ULTIMO_ESTADO.trim()] || {
+    <div className="tracking-events">
+      <Timeline className="tracking-events__timeline">
+        {items.map((item, index) => {
+          const title = isBluex
+            ? item?.title || item?.status
+            : item?.ULTIMO_ESTADO;
+          const date = isBluex ? item?.date || item?.updatedAt : item?.FECHA;
+          const agency = isBluex
+            ? item?.location || item?.agency || ""
+            : item?.ULTIMA_AGENCIA;
+          const normalizedTitle = String(title || "").trim();
+          const { color, icon } = stateStyleMap[normalizedTitle] || {
             color: "gray",
             icon: <ClockCircleOutlined />
           };
@@ -51,15 +78,13 @@ const ComponentTimeLineTracker = ({ trackingData }) => {
               key={index}
               dot={icon}
               color={color}
-              style={{ lineHeight: "1" }}
+              className="tracking-events__item"
             >
-              <p style={{ fontWeight: "bold" }}> {item.ULTIMO_ESTADO}</p>
-              <p style={{ fontSize: "0.6rem", color: "#8c8c8c" }}>
-                {item.FECHA}
-              </p>
-              <p style={{ fontSize: "0.6rem", color: "#8c8c8c" }}>
-                {item.ULTIMA_AGENCIA}
-              </p>
+              <div className="tracking-events__item-title">{normalizedTitle}</div>
+              <div className="tracking-events__item-meta">{date}</div>
+              {agency ? (
+                <div className="tracking-events__item-meta">{agency}</div>
+              ) : null}
             </Timeline.Item>
           );
         })}
@@ -69,54 +94,49 @@ const ComponentTimeLineTracker = ({ trackingData }) => {
 };
 
 const TimeLineTracker = ({ trackingData }) => {
-  const { token } = theme.useToken();
-  const panelStyle = {
-    borderRadius: token.borderRadiusLG,
-    border: "1px solid #f0f0f0",
-    overflow: "hidden",
-    padding: "1rem",
-    background: token.colorBgContainer
-  };
-
   if (!trackingData) return <SkeletonTimeLineTracker />;
 
   return (
-    <Collapse
-      bordered={false}
-      defaultActiveKey={["1"]}
-      expandIcon={({ isActive }) => (
-        <CaretRightOutlined rotate={isActive ? 90 : 0} />
-      )}
-    >
-      <Collapse.Panel
-        header={
-          <>
-            <Text strong>Seguimiento del Envío</Text>
-            <Text
-              type="secondary"
-              style={{ display: "block", marginTop: "0.5rem" }}
-            >
-              A veces, el seguimiento paso a paso puede no estar disponible. Si
-              tienes problemas, haz click aquí para ver todo el proceso de tu
-              compra.
-            </Text>
-          </>
-        }
-        key="1"
-        style={panelStyle}
-      >
-        <ComponentTimeLineTracker trackingData={trackingData} />
-      </Collapse.Panel>
-    </Collapse>
+    <Card className="tracking-panel tracking-panel--compact">
+      <div className="tracking-panel__header">
+        <div>
+          <Text className="tracking-eyebrow">Bitácora del courier</Text>
+          <div className="tracking-panel__title">Eventos de transporte</div>
+        </div>
+      </div>
+      <Collapse
+        bordered={false}
+        defaultActiveKey={["1"]}
+        expandIcon={({ isActive }) => (
+          <CaretRightOutlined rotate={isActive ? 90 : 0} />
+        )}
+        className="tracking-collapse"
+        items={[
+          {
+            key: "1",
+            label: (
+              <div>
+                <Text strong>Seguimiento paso a paso</Text>
+                <Text className="tracking-muted tracking-collapse__subtitle">
+                  Si el courier demora en propagar hitos, aquí seguirás viendo
+                  el último evento operativo disponible.
+                </Text>
+              </div>
+            ),
+            children: <ComponentTimeLineTracker trackingData={trackingData} />
+          }
+        ]}
+      />
+    </Card>
   );
 };
 
 ComponentTimeLineTracker.propTypes = {
-  trackingData: PropTypes.array.isRequired
+  trackingData: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
 };
 
 TimeLineTracker.propTypes = {
-  trackingData: PropTypes.array.isRequired
+  trackingData: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
 };
 
 export default TimeLineTracker;

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { Carousel } from "antd";
+import { Card, Carousel, Typography } from "antd";
 import { promos } from "../config/promos";
+
+const { Text, Title } = Typography;
 
 const PromoSlider = () => {
   useEffect(() => {
@@ -21,14 +23,27 @@ const PromoSlider = () => {
   }, []);
 
   return (
-    <div style={{ margin: "0 10px", marginTop: "1rem" }}>
-      <Carousel autoplay dots draggable>
+    <Card className="tracking-panel tracking-panel--compact">
+      <div className="tracking-panel__header">
+        <div>
+          <Text className="tracking-eyebrow">Promociones vigentes</Text>
+          <Title level={4} className="tracking-panel__title">
+            Aprovecha mientras llega tu pedido
+          </Title>
+        </div>
+      </div>
+      <Carousel autoplay dots draggable className="tracking-promo-carousel">
         {promos.map((p, idx) => {
           const desktop = p.srcDesktop || p.src;
           const mobile = p.srcMobile || p.src || p.srcDesktop;
           return (
-            <a key={idx} href={p.href} target="_blank" rel="noreferrer">
-              {/* Lazy load + responsive por dispositivo */}
+            <a
+              key={idx}
+              href={p.href}
+              target="_blank"
+              rel="noreferrer"
+              className="tracking-promo-slide"
+            >
               <picture>
                 {mobile && (
                   <source media="(max-width: 768px)" srcSet={mobile} />
@@ -37,19 +52,14 @@ const PromoSlider = () => {
                   src={desktop}
                   alt={p.alt}
                   loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    borderRadius: 8,
-                    objectFit: "cover"
-                  }}
+                  className="tracking-promo-slide__image"
                 />
               </picture>
             </a>
           );
         })}
       </Carousel>
-    </div>
+    </Card>
   );
 };
 

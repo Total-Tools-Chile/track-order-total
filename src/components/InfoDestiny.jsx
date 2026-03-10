@@ -1,4 +1,4 @@
-import { Row, Col, Card, Button, Modal } from "antd";
+import { Row, Col, Card, Button, Modal, Typography } from "antd";
 import { useState } from "react";
 import {
   EnvironmentOutlined,
@@ -10,9 +10,10 @@ import SkeletonDestinyInfo from "./Skeletons/SkeletonDestinyInfo";
 
 // no Link usage
 
+const { Text, Title } = Typography;
+
 const InfoDestiny = ({ client }) => {
   const [open, setOpen] = useState(false);
-  console.log(client);
   if (!client) return <SkeletonDestinyInfo />;
 
   const boletaUrl = client?.order?.note_attributes?.find(
@@ -20,57 +21,68 @@ const InfoDestiny = ({ client }) => {
   )?.value;
 
   return (
-    <Row justify="center" align="middle">
-      <Col xs={24} flex="auto" style={{ margin: "0.5rem" }}>
-        <Row justify="center" align="middle" gutter={[24, 24]}>
+    <Card className="tracking-panel">
+      <div className="tracking-panel__header">
+        <div>
+          <Text className="tracking-eyebrow">Destino</Text>
+          <Title level={4} className="tracking-panel__title">
+            Entrega y documento tributario
+          </Title>
+        </div>
+      </div>
+      <Row justify="center" align="middle">
+        <Col xs={24} flex="auto">
+          <Row justify="center" align="middle" gutter={[16, 16]}>
           <Col span={24} md={8}>
-            <Card className="customer-info-card">
-              <span style={{ display: "flex", alignItems: "center" }}>
-                <EnvironmentOutlined
-                  style={{ marginRight: 10, fontSize: "1.3rem" }}
-                />
-                <h6 style={{ margin: "0" }} className="card-number">
-                  Region destino: {client?.order?.shipping_address?.province}
-                </h6>
+            <Card className="tracking-info-card" bordered={false}>
+              <span className="tracking-info-card__icon">
+                <EnvironmentOutlined />
               </span>
+              <div>
+                <Text className="tracking-eyebrow">Región</Text>
+                <div className="tracking-info-card__value">
+                  {client?.order?.shipping_address?.province || "No informada"}
+                </div>
+              </div>
             </Card>
           </Col>
           <Col span={24} md={8}>
-            <Card className="customer-info-card">
-              <span style={{ display: "flex", alignItems: "center" }}>
-                <HomeOutlined style={{ marginRight: 10, fontSize: "1.3rem" }} />
-                <h6 style={{ margin: "0" }} className="card-number">
-                  Comuna destino: {client?.order?.shipping_address?.city}
-                </h6>
+            <Card className="tracking-info-card" bordered={false}>
+              <span className="tracking-info-card__icon">
+                <HomeOutlined />
               </span>
+              <div>
+                <Text className="tracking-eyebrow">Comuna</Text>
+                <div className="tracking-info-card__value">
+                  {client?.order?.shipping_address?.city || "No informada"}
+                </div>
+              </div>
             </Card>
           </Col>
           <Col span={24} md={8}>
-            <Card
-              style={{ display: "flex", alignItems: "center" }}
-              className="customer-info-card"
-            >
-              <span style={{ display: "flex", alignItems: "center" }}>
-                <FileTextOutlined
-                  style={{ marginRight: 10, fontSize: "1.3rem" }}
-                />
-                <h6 style={{ margin: "0" }} className="card-number">
-                  Boleta/Factura
-                </h6>
+            <Card className="tracking-info-card tracking-info-card--stack" bordered={false}>
+              <span className="tracking-info-card__icon">
+                <FileTextOutlined />
               </span>
-              <div style={{ marginTop: "8px" }}>
+              <div>
+                <Text className="tracking-eyebrow">Documento</Text>
+                <div className="tracking-info-card__value">
+                  Boleta o factura
+                </div>
+              </div>
+              <div className="tracking-info-card__action">
                 {boletaUrl ? (
                   <Button
                     type="primary"
                     href={boletaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ backgroundColor: "#036066" }}
+                    className="tracking-primary-button"
                   >
                     Ver documento
                   </Button>
                 ) : (
-                  <Button onClick={() => setOpen(true)}>
+                  <Button onClick={() => setOpen(true)} className="tracking-secondary-button">
                     Documento no disponible
                   </Button>
                 )}
@@ -78,7 +90,8 @@ const InfoDestiny = ({ client }) => {
             </Card>
           </Col>
         </Row>
-      </Col>
+        </Col>
+      </Row>
       <Modal
         title="Documento no disponible"
         open={open}
@@ -99,7 +112,7 @@ const InfoDestiny = ({ client }) => {
           o usa el botón de WhatsApp en la esquina para atención rápida.
         </p>
       </Modal>
-    </Row>
+    </Card>
   );
 };
 

@@ -1,6 +1,6 @@
-import { Card, Tag, Typography } from "antd";
+import { Card, Progress, Tag, Typography } from "antd";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const estadoColorMap = {
   Ordenada: "blue",
@@ -68,6 +68,15 @@ const estimateEta = (step) => {
   }
 };
 
+const progressByStep = {
+  Ordenada: 16,
+  Procesada: 32,
+  Enviada: 48,
+  "En tránsito": 68,
+  "En reparto": 88,
+  Entregada: 100
+};
+
 const getLatestEvent = (trackingData) => {
   if (!Array.isArray(trackingData) || trackingData.length === 0) return null;
   return trackingData[0]; // asumiendo más reciente primero; si no, ordenar por fecha
@@ -75,6 +84,53 @@ const getLatestEvent = (trackingData) => {
 
 const StatusSummary = ({ trackingData }) => {
   if (!trackingData) return null;
+
+  const isBluex =
+    trackingData?.provider === "bluexpress" && trackingData?.frontend;
+
+  if (isBluex) {
+    const f = trackingData.frontend;
+    const step = (f.stepTitle || "Enviada").replace(
+      "En transito",
+      "En tránsito"
+    );
+    const color = estadoColorMap[step] || "default";
+    const parsed = parseDate(trackingData?.events?.[0]?.date || f.updatedAt);
+    const lastUpdate = humanizeDiff(parsed);
+    const eta = estimateEta(step);
+
+    return (
+      <Card className="tracking-summary-card">
+        <div className="tracking-summary-card__main">
+          <div>
+            <Text className="tracking-eyebrow">Estado operacional</Text>
+            <Title level={3} className="tracking-summary-card__title">
+              {step}
+            </Title>
+            <div className="tracking-summary-card__meta">
+              <Tag color={color} className="tracking-status-pill">
+                {step}
+              </Tag>
+              <Text className="tracking-muted">
+                Última actualización: {lastUpdate}
+              </Text>
+            </div>
+          </div>
+          <div className="tracking-summary-card__eta">
+            <Text className="tracking-eyebrow">Compromiso estimado</Text>
+            <div className="tracking-summary-card__eta-value">{eta}</div>
+          </div>
+        </div>
+        <Progress
+          percent={progressByStep[step] || 24}
+          showInfo={false}
+          strokeColor="#016066"
+          trailColor="rgba(31, 35, 40, 0.1)"
+        />
+      </Card>
+    );
+  }
+
   const latest = getLatestEvent(trackingData);
   const estado = latest?.ULTIMO_ESTADO?.trim();
   const step = statusToStepMap[estado] || "Enviada";
@@ -91,23 +147,31 @@ const StatusSummary = ({ trackingData }) => {
     : `Última actualización: ${lastUpdate}`;
 
   return (
-    <Card
-      size="small"
-      style={{ margin: "0 10px", border: "1px solid #f0f0f0" }}
-      bodyStyle={{
-        display: "flex",
-        gap: 16,
-        alignItems: "center",
-        flexWrap: "wrap"
-      }}
-    >
-      <Tag color={color} style={{ marginRight: 8 }}>
-        {step}
-      </Tag>
-      <Text type="secondary">{lastUpdateLabel}</Text>
-      <Text strong style={{ marginLeft: "auto" }}>
-        ETA estimada: {eta}
-      </Text>
+    <Card className="tracking-summary-card">
+      <div className="tracking-summary-card__main">
+        <div>
+          <Text className="tracking-eyebrow">Estado operacional</Text>
+          <Title level={3} className="tracking-summary-card__title">
+            {step}
+          </Title>
+          <div className="tracking-summary-card__meta">
+            <Tag color={color} className="tracking-status-pill">
+              {step}
+            </Tag>
+            <Text className="tracking-muted">{lastUpdateLabel}</Text>
+          </div>
+        </div>
+        <div className="tracking-summary-card__eta">
+          <Text className="tracking-eyebrow">Compromiso estimado</Text>
+          <div className="tracking-summary-card__eta-value">{eta}</div>
+        </div>
+      </div>
+      <Progress
+        percent={progressByStep[step] || 24}
+        showInfo={false}
+        strokeColor="#016066"
+        trailColor="rgba(31, 35, 40, 0.1)"
+      />
     </Card>
   );
 };
