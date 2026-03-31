@@ -208,26 +208,15 @@ function TrackOrder() {
         );
       };
 
-      const buildChilexpressUrl = () =>
-        `${API_BASE}/shopsale/v1/chilexpress/${CHX_USER_ID}/tracking`;
-
-      const buildChilexpressRequestOptions = (odt) => {
+      const buildChilexpressUrl = (odt) => {
         const transportOrderNumber =
           Number(odt) || (typeof odt === "string" ? odt : "");
-        // RUT fijo definido por backend
-        const rutNum = 76338734;
-        return {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            transportOrderNumber,
-            rut: rutNum,
-            showTrackingEvents: 1
-          }),
-          redirect: "follow"
-        };
+        const params = new URLSearchParams({
+          transportOrderNumber: String(transportOrderNumber),
+          rut: "76338734",
+          showTrackingEvents: "1"
+        });
+        return `${API_BASE}/shopsale/v1/chilexpress/${CHX_USER_ID}/tracking?${params.toString()}`;
       };
 
       const load = async () => {
@@ -251,11 +240,8 @@ function TrackOrder() {
           }
           if (isChilexpressOrder(orderDetails)) {
             // Ir directo a Chilexpress usando el ODT encontrado en Mongo
-            const chxUrl = buildChilexpressUrl();
-            const chxResp = await fetch(
-              chxUrl,
-              buildChilexpressRequestOptions(odt)
-            );
+            const chxUrl = buildChilexpressUrl(odt);
+            const chxResp = await fetch(chxUrl);
             if (!chxResp.ok)
               throw new Error(`Chilexpress status ${chxResp.status}`);
             const chx = await chxResp.json();
@@ -279,11 +265,8 @@ function TrackOrder() {
             } else if (isChilexpressOrder(orderDetails)) {
               // Fallback por falta de eventos
               try {
-                const chxUrl = buildChilexpressUrl();
-                const chxResp = await fetch(
-                  chxUrl,
-                  buildChilexpressRequestOptions(odt)
-                );
+                const chxUrl = buildChilexpressUrl(odt);
+                const chxResp = await fetch(chxUrl);
                 if (!chxResp.ok)
                   throw new Error(`Chilexpress status ${chxResp.status}`);
                 const chx = await chxResp.json();
@@ -300,11 +283,8 @@ function TrackOrder() {
           if (isChilexpressOrder(orderDetails)) {
             try {
               const odt = getODT(orderDetails) || orderId;
-              const chxUrl = buildChilexpressUrl();
-              const chxResp = await fetch(
-                chxUrl,
-                buildChilexpressRequestOptions(odt)
-              );
+              const chxUrl = buildChilexpressUrl(odt);
+              const chxResp = await fetch(chxUrl);
               if (!chxResp.ok)
                 throw new Error(`Chilexpress status ${chxResp.status}`);
               const chx = await chxResp.json();
