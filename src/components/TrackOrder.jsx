@@ -23,7 +23,7 @@ const API_BASE = (() => {
     // normaliza removiendo slashes finales duplicados
     return fromEnv.replace(/\/+$/, "");
   }
-  return "http://localhost:4444";
+  return "https://shopy-sale-v2.fly.dev";
 })();
 const CHX_USER_ID =
   (import.meta.env.VITE_CHX_USER_ID || "").trim() || "6414b5c318ef9e551c2bde68";
