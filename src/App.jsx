@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ConfigProvider } from "antd";
 import TrackOrder from "./components/TrackOrder"; // Asegúrate de crear este componente
+import TrackOwnDelivery from "./components/TrackOwnDelivery";
 import "./assets/styles/main.css";
 import "antd/dist/reset.css";
 
@@ -50,6 +51,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/order/:orderId" element={<TrackOrder />} />
+          {/* Envío Propio (courier interno). N° seguimiento = ID de Shopify. */}
+          <Route path="/own/:orderId" element={<TrackOwnDelivery />} />
         </Routes>
       </Router>
     </ConfigProvider>
