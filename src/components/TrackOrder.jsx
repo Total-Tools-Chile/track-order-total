@@ -85,6 +85,9 @@ const toSentenceCase = (value = "") => {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
+const normalizeBluexpressStepTitle = (value = "") =>
+  String(value || "").trim().replace("En transito", "En tránsito");
+
 const normalizeBluexpressTracking = (bxResponse) => {
   try {
     const frontend = bxResponse?.frontend || null;
@@ -111,9 +114,27 @@ const normalizeBluexpressTracking = (bxResponse) => {
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+    // El backend es la única fuente de verdad del paso alcanzado: arma el
+    // resumen monotónico por el mayor hito operativo (nunca retrocede tras
+    // DL/ENTREGADO). El frontend solo confía en `frontend.steps` / `stepIndex`
+    // y ya no recalcula (antes había una derivación paralela que divergía).
+    // Aquí únicamente se normaliza el acento de los títulos para la UI.
+    const normalizedFrontend = frontend
+      ? {
+          ...frontend,
+          stepTitle: normalizeBluexpressStepTitle(frontend.stepTitle || "Ordenada"),
+          steps: Array.isArray(frontend.steps)
+            ? frontend.steps.map((step) => ({
+                ...step,
+                title: normalizeBluexpressStepTitle(step?.title || "")
+              }))
+            : frontend?.steps
+        }
+      : frontend;
+
     return {
       provider: "bluexpress",
-      frontend,
+      frontend: normalizedFrontend,
       raw: data,
       events
     };
