@@ -96,10 +96,14 @@ function TrackOwnDelivery() {
   }, [orderId]);
 
   const steps = Array.isArray(data?.steps) ? data.steps : [];
-  const currentIdx = Math.max(
-    0,
-    steps.findIndex((s) => s.status === "current")
-  );
+  const currentIdx = (() => {
+    const idx = steps.findIndex((s) => s.status === "current");
+    if (idx !== -1) return idx;
+    // Entregado: ya no hay paso "current" (el último queda "done") → resaltar el último
+    // paso alcanzado en vez de caer al índice 0 (que marcaba el primer paso por error).
+    const lastDone = steps.map((s) => s.status).lastIndexOf("done");
+    return lastDone !== -1 ? lastDone : 0;
+  })();
   const stepItems = steps.map((s) => ({
     title: s.label,
     description: s.description,
@@ -110,7 +114,14 @@ function TrackOwnDelivery() {
     .slice()
     .reverse()
     .map((ev) => ({
-      color: ev.event === "entregado" ? "green" : ev.event === "cancelled" ? "gray" : "#016066",
+      color:
+        ev.event === "entregado"
+          ? "green"
+          : ev.event === "cancelled"
+            ? "gray"
+            : ev.event === "failed_attempt"
+              ? "orange"
+              : "#016066",
       children: (
         <div>
           <div style={{ fontWeight: 600, color: "#1f2328" }}>{ev.label}</div>
@@ -175,6 +186,16 @@ function TrackOwnDelivery() {
           </div>
         ) : data ? (
           <>
+            {data.isCancelled ? (
+              <Alert
+                message="Este envío fue cancelado"
+                description="Si crees que es un error, escríbenos por WhatsApp y lo revisamos."
+                type="warning"
+                showIcon
+                className="tracking-alert"
+              />
+            ) : null}
+
             {/* Estado actual (focal) */}
             <Card className="tracking-summary-card">
               <div className="tracking-summary-card__main">
@@ -217,6 +238,14 @@ function TrackOwnDelivery() {
                 strokeColor="#016066"
                 trailColor="rgba(31, 35, 40, 0.1)"
               />
+              {data.updatedAt ? (
+                <Text
+                  className="tracking-muted"
+                  style={{ fontSize: 12, display: "block", marginTop: 8 }}
+                >
+                  Última actualización: {fmt(data.updatedAt)}
+                </Text>
+              ) : null}
             </Card>
 
             {/* Stepper */}
