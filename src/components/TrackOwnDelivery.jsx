@@ -216,6 +216,11 @@ function TrackOwnDelivery() {
                         Repartidor: {data.driverFirstName}
                       </Text>
                     ) : null}
+                    {data.isDelivered && data.receivedBy ? (
+                      <Text className="tracking-muted">
+                        Recibido por: {data.receivedBy}
+                      </Text>
+                    ) : null}
                   </div>
                 </div>
                 <div className="tracking-summary-card__eta">
